@@ -1,3 +1,5 @@
+// MAIN PROGRAM
+
 const Crawler = require('crawler');
 const constant = require('./constants');
 const normalizeUrl = require('normalize-url');
@@ -27,19 +29,25 @@ var crawler = new Crawler({
             let L = links.length;
 
             for (let i = 0; i < L; i++) {
-                if (links[i].attribs.href) {
+                let rawURL = links[i].attribs.href;
+                if (rawURL) {
                     try {
-                        currentURL = normalizeUrl(links[i].attribs.href, constant.URL_OPTIONS);
+                        if (rawURL[0] == '/') {
+                            rawURL = rawURL.replace('/', constant.SEED);
+                        }
+                        let finalURL = normalizeUrl(rawURL, constant.URL_OPTIONS);
 
-                        if (currentURL && !visitedURL[currentURL]) {
+                        if (finalURL && !visitedURL[finalURL]) {
                             crawler.queue({
-                                uri: currentURL,
+                                uri: finalURL,
                                 depth: res.options.depth + 1
                             });
 
-                            visitedURL[currentURL] = true;
+                            visitedURL[finalURL] = true;
 
-                            !constant.SILENT_MODE && console.log(`Enqueued URL: ${currentURL}`);
+                            if (!constant.SILENT_MODE) {
+                                console.log(`Enqueued URL: ${finalURL}`);
+                            }
                         }
                     } catch (err) {
                         if (!constant.SILENT_MODE) {
@@ -57,6 +65,7 @@ var crawler = new Crawler({
     }
 });
 
+// Start crawling
 crawler.queue({
     uri: constant.SEED,
     depth: 0
