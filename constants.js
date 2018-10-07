@@ -6,8 +6,8 @@ module.exports = {
     URL_OPTIONS: {
         normalizeHttps: true
     },
-    FILE_PATH: 'export',
+    EXPORT_FOLDER: 'export',
 
-    SILENT_MODE: false
+    SILENT_MODE: true
 }
     

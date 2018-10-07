@@ -19,8 +19,8 @@ var crawler = new Crawler({
 
 
             console.log(fileName);
-            storage.writeToFile(fileName, 'txt', fileText);
-            storage.writeToFile(fileName, 'html', fileHTML);
+            storage.writeToFile(fileName, 'txt', fileText, res.options.depth);
+            storage.writeToFile(fileName, 'html', fileHTML, res.options.depth);
 
             // Extract all links
             const links = $('a');

@@ -4,14 +4,23 @@ const sanitize = require("sanitize-filename");
 
 const processingFiles = [];
 
-if (!fs.existsSync(`./${constant.FILE_PATH}`)) {
-    fs.mkdirSync(`./${constant.FILE_PATH}`);
+let exportFolder = [];
+
+if (!fs.existsSync(`./${constant.EXPORT_FOLDER}`)) {
+    fs.mkdirSync(`./${constant.EXPORT_FOLDER}`);
 }
 
+
+
 module.exports = {
-    writeToFile: function (fileName, fileType, content, callback) {
+    writeToFile: function (fileName, fileType, content, depth, callback) {
+        // Generate subfolders
+        if (!exportFolder[depth]) {
+            exportFolder[depth] = constant.EXPORT_FOLDER + `/depth${depth}`;
+            fs.mkdirSync(`./${exportFolder[depth]}`);
+        }
         fileName = sanitize(fileName);
-        fs.writeFile(`${constant.FILE_PATH}/${fileName}.${fileType}`, content, err => {
+        fs.writeFile(`${exportFolder[depth]}/${fileName}.${fileType}`, content, err => {
             if (callback) {
                 callback(err);
             } else {
