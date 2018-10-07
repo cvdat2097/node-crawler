@@ -2,13 +2,8 @@ const Crawler = require('crawler');
 const constant = require('./constants');
 const normalizeUrl = require('normalize-url');
 const storage = require('./storage');
-const fs = require('fs');
 
 const visitedURL = {}
-
-if (!fs.existsSync('./export')){
-    fs.mkdirSync('./export');
-}
 
 var crawler = new Crawler({
     maxConnections: constant.MAX_CONNECTION,
@@ -24,12 +19,8 @@ var crawler = new Crawler({
 
 
             console.log(fileName);
-            fs.writeFile(`export/${fileName}.txt`, fileText, err => {
-                err && console.log(err);
-            });
-            fs.writeFile(`export/${fileName}.html`, fileHTML, err => {
-                err && console.log(err);
-            });
+            storage.writeToFile(fileName, 'txt', fileText);
+            storage.writeToFile(fileName, 'html', fileHTML);
 
             // Extract all links
             const links = $('a');
@@ -38,7 +29,7 @@ var crawler = new Crawler({
             for (let i = 0; i < L; i++) {
                 if (links[i].attribs.href) {
                     try {
-                        let currentURL = normalizeUrl(links[i].attribs.href, constant.URL_OPTIONS);
+                        currentURL = normalizeUrl(links[i].attribs.href, constant.URL_OPTIONS);
 
                         if (currentURL && !visitedURL[currentURL]) {
                             crawler.queue({
@@ -53,7 +44,7 @@ var crawler = new Crawler({
                     } catch (err) {
                         if (!constant.SILENT_MODE) {
                             if (err.code === 'ERR_INVALID_URL') {
-                                // console.log(`Invalid URL: ${err.input}`);
+                                console.log(`Invalid URL: ${err.input}`);
                             } else {
                                 console.log(err);
                             }
