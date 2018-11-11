@@ -36,7 +36,7 @@ module.exports = {
                 callback(err);
             } else {
                 if (err) {
-                    throw err;
+                    // throw err;
                 }
             }
         });
