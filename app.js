@@ -6,6 +6,7 @@ const normalizeUrl = require('normalize-url');
 const storage = require('./storage');
 
 const visitedURL = {}
+var nVisitedURL = 0;
 
 var crawler = new Crawler({
     maxConnections: constant.MAX_CONNECTION,
@@ -13,52 +14,56 @@ var crawler = new Crawler({
         if (err) {
             console.log(err);
         } else if (res.options.depth <= constant.MAX_DEPTH) {
-            // Record current page
-            let $ = res.$;
-            let fileName = $('title').text();
-            let fileText = $('body').text();
-            let fileHTML = res.body;
+            try {
+                // Record current page
+                let $ = res.$;
+                let fileName = $('title').text();
+                let fileText = $('body').text();
+                let fileHTML = res.body;
 
+                nVisitedURL++;
+                storage.writeToFile(fileName, 'txt', fileText, res.options.depth);
+                storage.writeToFile(fileName, 'html', fileHTML, res.options.depth);
+                console.log(`${nVisitedURL}|${res.options.depth} ${fileName}`);
 
-            console.log(fileName);
-            storage.writeToFile(fileName, 'txt', fileText, res.options.depth);
-            storage.writeToFile(fileName, 'html', fileHTML, res.options.depth);
+                // Extract all links
+                const links = $('a');
+                let L = links.length;
 
-            // Extract all links
-            const links = $('a');
-            let L = links.length;
-
-            for (let i = 0; i < L; i++) {
-                let rawURL = links[i].attribs.href;
-                if (rawURL) {
-                    try {
-                        if (rawURL[0] == '/') {
-                            rawURL = rawURL.replace('/', constant.SEED);
-                        }
-                        let finalURL = normalizeUrl(rawURL, constant.URL_OPTIONS);
-
-                        if (finalURL && !visitedURL[finalURL]) {
-                            crawler.queue({
-                                uri: finalURL,
-                                depth: res.options.depth + 1
-                            });
-
-                            visitedURL[finalURL] = true;
-
-                            if (!constant.SILENT_MODE) {
-                                console.log(`Enqueued URL: ${finalURL}`);
+                for (let i = 0; i < L; i++) {
+                    let rawURL = links[i].attribs.href;
+                    if (rawURL) {
+                        try {
+                            if (rawURL[0] == '/') {
+                                rawURL = rawURL.replace('/', constant.SEED);
                             }
-                        }
-                    } catch (err) {
-                        if (!constant.SILENT_MODE) {
-                            if (err.code === 'ERR_INVALID_URL') {
-                                console.log(`Invalid URL: ${err.input}`);
-                            } else {
-                                console.log(err);
+                            let finalURL = normalizeUrl(rawURL, constant.URL_OPTIONS);
+
+                            if (finalURL && !visitedURL[finalURL]) {
+                                crawler.queue({
+                                    uri: finalURL,
+                                    depth: res.options.depth + 1
+                                });
+
+                                visitedURL[finalURL] = true;
+
+                                if (!constant.SILENT_MODE) {
+                                    console.log(`Enqueued URL: ${finalURL}`);
+                                }
+                            }
+                        } catch (err) {
+                            if (!constant.SILENT_MODE) {
+                                if (err.code === 'ERR_INVALID_URL') {
+                                    console.log(`Invalid URL: ${err.input}`);
+                                } else {
+                                    console.log(err);
+                                }
                             }
                         }
                     }
                 }
+            } catch (e) {
+
             }
         }
         done();
